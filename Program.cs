@@ -41,10 +41,10 @@ using (var scope = app.Services.CreateScope())
 
     await DbInitializer.Initialize(context, userManager, roleManager);
 
-    await DataSeeder.SeedStudents(userManager);
-    await DataSeeder.SeedInstructors(userManager);
-    await DataSeeder.SeedCourses(context, userManager);
-    await DataSeeder.SeedStudentCourses(context, userManager);
+    // await DataSeeder.SeedStudents(userManager);
+    // await DataSeeder.SeedInstructors(userManager);
+    // await DataSeeder.SeedCourses(context, userManager);
+    // await DataSeeder.SeedStudentCourses(context, userManager);
 }
 
 app.UseHttpsRedirection();

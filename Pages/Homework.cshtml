@@ -1,0 +1,190 @@
+@page
+@model HomeworkModel
+@{
+    ViewData["Title"] = Model.Homework?.Title ?? "Homework";
+}
+
+<div class="container">
+    <a href="/Course?id=@Model.Homework?.CourseId" class="btn btn-secondary mb-3">&larr; Back to Course</a>
+
+    <h1>
+        @if (Model.EditMode && Model.IsInstructor)
+        {
+            <form method="post" enctype="multipart/form-data">
+                <input type="hidden" asp-for="Id" />
+                <div>
+                    <label asp-for="Title"></label>
+                    <input asp-for="Title" class="form-control" />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="Description"></label>
+                    <textarea asp-for="Description" class="form-control" rows="6"></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+                <div>
+                    <label asp-for="DueDate"></label>
+                    <input asp-for="DueDate" type="datetime-local" class="form-control" />
+                    <span asp-validation-for="DueDate" class="text-danger"></span>
+                </div>
+                <div>
+                    <label for="NewFiles">Add files (you can select multiple):</label>
+                    <input type="file" id="NewFiles" name="NewFiles" multiple />
+                </div>
+                @if (Model.Homework?.Files?.Any() ?? false)
+                {
+                    <h3>Existing Files</h3>
+                    <ul>
+                    @foreach (var file in Model.Homework.Files)
+                    {
+                        <li class="file-entry">
+                            @if (
+                                file.FileName.ToLower().EndsWith(".png") ||
+                                file.FileName.ToLower().EndsWith(".jpg") ||
+                                file.FileName.ToLower().EndsWith(".jpeg") ||
+                                file.FileName.ToLower().EndsWith(".gif") ||
+                                file.FileName.ToLower().EndsWith(".bmp") ||
+                                file.FileName.ToLower().EndsWith(".webp")
+                            )
+                            {
+                                <img src="@file.FilePath" alt="@file.FileName" />
+                            }
+                            else
+                            {
+                                <a href="@file.FilePath" download>@file.FileName</a>
+                            }
+                            <label>
+                                <input type="checkbox" name="FilesToDelete" value="@file.Id" />
+                                Delete
+                            </label>
+                        </li>
+                    }
+                    </ul>
+                }
+                <button type="submit" class="btn btn-success mt-2">Save</button>
+                <a href="/Homework?id=@Model.Homework.Id" class="btn btn-secondary mt-2">Cancel</a>
+            </form>
+        }
+        else
+        {
+            @Model.Homework.Title
+            @if (Model.IsInstructor)
+            {
+                <a href="/Homework?id=@Model.Homework.Id&editMode=true" class="btn btn-sm" style="margin-left:1em;">Edit</a>
+            }
+        }
+    </h1>
+
+    @if (!(Model.EditMode && Model.IsInstructor))
+    {
+        <p><b>Due:</b> @Model.Homework?.DueDate.ToString("yyyy-MM-dd HH:mm")</p>
+        <p>@Model.Homework?.Description</p>
+
+        @if (Model.Homework?.Files != null && Model.Homework.Files.Any())
+        {
+            <h3>Files</h3>
+            <ul>
+                @foreach (var file in Model.Homework.Files)
+                {
+                    <li class="file-entry">
+                        @if (
+                            file.FileName.ToLower().EndsWith(".png") ||
+                            file.FileName.ToLower().EndsWith(".jpg") ||
+                            file.FileName.ToLower().EndsWith(".jpeg") ||
+                            file.FileName.ToLower().EndsWith(".gif") ||
+                            file.FileName.ToLower().EndsWith(".bmp") ||
+                            file.FileName.ToLower().EndsWith(".webp")
+                        )
+                        {
+                            <img src="@file.FilePath" alt="@file.FileName" />
+                        }
+                        else
+                        {
+                            <a href="@file.FilePath" download>@file.FileName</a>
+                        }
+                    </li>
+                }
+            </ul>
+        }
+
+        @if (Model.IsInstructor)
+        {
+            <form method="post" asp-page-handler="Delete" asp-route-id="@Model.Homework.Id" onsubmit="return confirm('Are you sure you want to delete this homework?');">
+                <button type="submit" class="btn btn-danger mt-3">Delete</button>
+            </form>
+        }
+    }
+
+    @if (Model.IsStudent && !(Model.EditMode && Model.IsInstructor))
+    {
+        <h3>Your Submission</h3>
+        @if (Model.Submission == null)
+        {
+            <form method="post" enctype="multipart/form-data" asp-page-handler="Submit">
+                <input type="hidden" asp-for="Id" />
+                <div>
+                    <label asp-for="AnswerText">Your Answer (optional):</label>
+                    <textarea asp-for="AnswerText" class="form-control" rows="5"></textarea>
+                </div>
+                <div>
+                    <label for="SubmissionFiles">Attach Files (optional):</label>
+                    <input type="file" id="SubmissionFiles" name="SubmissionFiles" multiple />
+                </div>
+                <button type="submit" class="btn">Submit Homework</button>
+            </form>
+        }
+        else
+        {
+            <p><b>Submitted:</b> @Model.Submission.SubmittedAt.ToString("yyyy-MM-dd HH:mm")</p>
+            <p>@Model.Submission.AnswerText</p>
+            @if (Model.Submission.Files.Any())
+            {
+                <h4>Your Files</h4>
+                <ul>
+                @foreach (var file in Model.Submission.Files)
+                {
+                    <li><a href="@file.FilePath" download>@file.FileName</a></li>
+                }
+                </ul>
+            }
+            @if (Model.Submission.Grade.HasValue)
+            {
+                <p><b>Grade:</b> @Model.Submission.Grade</p>
+            }
+            @if (!string.IsNullOrWhiteSpace(Model.Submission.Feedback))
+            {
+                <p><b>Feedback:</b> @Model.Submission.Feedback</p>
+            }
+        }
+    }
+
+    @if (Model.IsInstructor && Model.Submissions.Any() && !(Model.EditMode && Model.IsInstructor))
+    {
+        <h3>Student Submissions</h3>
+        <table>
+            <tr>
+                <th>Student</th>
+                <th>Submitted At</th>
+                <th>Grade</th>
+                <th>Feedback</th>
+                <th>Actions</th>
+            </tr>
+            @foreach (var sub in Model.Submissions)
+            {
+                <tr>
+                    <td>@sub.Student.UserName</td>
+                    <td>@sub.SubmittedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                    <td>@(sub.Grade.HasValue ? sub.Grade.ToString() : "—")</td>
+                    <td>@sub.Feedback</td>
+                    <td>
+                        <a href="/Submission?id=@sub.Id" class="btn btn-sm">Grade</a>
+                    </td>
+                </tr>
+            }
+        </table>
+    }
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

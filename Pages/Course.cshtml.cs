@@ -24,13 +24,15 @@ public class CourseModel : PageModel
     public string InstructorName { get; set; } = "";
     public List<string> StudentNames { get; set; } = new();
     public List<CourseMaterial> Materials { get; set; } = new();
+    public List<HomeworkTask> Homeworks { get; set; } = new();
 
     public async Task<IActionResult> OnGetAsync()
     {
         var course = await _context.Courses
             .Include(c => c.Instructor)
             .Include(c => c.StudentCourse).ThenInclude(sc => sc.Student)
-            .Include(c => c.Materials)
+            .Include(c => c.Materials).ThenInclude(m => m.Files)
+            .Include(c => c.HomeworkTasks).ThenInclude(h => h.Files)
             .FirstOrDefaultAsync(c => c.Id == Id);
 
         if (course == null)
@@ -43,6 +45,7 @@ public class CourseModel : PageModel
         InstructorName = course.Instructor?.FirstName + " " + course.Instructor?.LastName;
         StudentNames = course.StudentCourse.Select(sc => sc.Student.FirstName + " " + sc.Student.LastName).ToList();
         Materials = course.Materials.ToList();
+        Homeworks = course.HomeworkTasks.OrderByDescending(h => h.DueDate).ToList();
 
         return Page();
     }

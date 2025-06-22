@@ -1,0 +1,30 @@
+@page
+@model SubmissionModel
+@{
+    ViewData["Title"] = "Grade Submission";
+}
+<h2>Grade Submission</h2>
+@if (Model.Submission != null)
+{
+    <p><b>Student:</b> @Model.Submission.Student.UserName</p>
+    <p><b>Answer:</b> @Model.Submission.AnswerText</p>
+    <p><b>Files:</b></p>
+    <ul>
+    @foreach (var file in Model.Submission.Files)
+    {
+        <li><a href="@file.FilePath" download>@file.FileName</a></li>
+    }
+    </ul>
+    <form method="post">
+        <div>
+            <label asp-for="Grade">Grade:</label>
+            <input asp-for="Grade" />
+        </div>
+        <div>
+            <label asp-for="Feedback">Feedback:</label>
+            <textarea asp-for="Feedback"></textarea>
+        </div>
+        <button type="submit">Save Grade</button>
+        <a href="/Homework?id=@Model.Submission.HomeworkTaskId" class="btn btn-secondary">Back</a>
+    </form>
+}

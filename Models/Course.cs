@@ -12,5 +12,6 @@ public class Course
 
     public List<StudentCourse> StudentCourse { get; set; } = new();
     public ICollection<CourseMaterial> Materials { get; set; } = new List<CourseMaterial>();
+    public ICollection<HomeworkTask> HomeworkTasks { get; set; } = new List<HomeworkTask>();
 
 }

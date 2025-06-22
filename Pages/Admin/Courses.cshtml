@@ -1,0 +1,60 @@
+@page
+@model ClassroomManagement.Pages.Admin.CoursesModel
+@{
+    ViewData["Title"] = "Course Management";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"] - Classroom Management</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" />
+    <style>
+        :root {
+          --bg: #0f172a;
+          --card: rgba(30, 41, 59, 0.9);
+          --text: #f1f5f9;
+          --accent: #6366f1;
+          --accent-hover: #4f46e5;
+          --border: rgba(255,255,255,0.1);
+        }
+        body { background: var(--bg); color: var(--text); padding: 40px; }
+        h1, h2 { color: var(--accent); margin-bottom: 20px; }
+        a.btn, button.btn { margin-bottom: 16px; padding: 10px 16px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-block; }
+        a.btn-primary, button.btn-primary { background-color: var(--accent); color: white; }
+        .btn-warning { background-color: #facc15; color: #1f2937; }
+        .btn-danger { background-color: #ef4444; color: white; }
+        .btn-secondary { background-color: #6b7280; color: white; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
+        th, td { border: 1px solid var(--border); padding: 12px; text-align: left; }
+        th { background: #1e293b; }
+    </style>
+</head>
+<body>
+    <h1>Course Management</h1>
+    <a asp-page="/Main" class="btn btn-primary">Back to Main Page</a>
+    <a asp-page="/Admin/CreateCourse" class="btn btn-success">Add New Course</a>
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>Instructor</th>
+            <th>Enrolled Students</th>
+            <th>Actions</th>
+        </tr>
+        @foreach (var course in Model.Courses)
+        {
+            <tr>
+                <td>@course.Name</td>
+                <td>@(course.Instructor?.FirstName) @(course.Instructor?.LastName)</td>
+                <td>@course.StudentCourse.Count</td>
+                <td>
+                    <a asp-page="/Admin/EditCourse" asp-route-id="@course.Id" class="btn btn-warning">Edit</a>
+                    <form method="post" asp-page-handler="Delete" asp-route-id="@course.Id" style="display:inline;" onsubmit="return confirm('Delete this course?');">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </table>
+</body>
+</html>

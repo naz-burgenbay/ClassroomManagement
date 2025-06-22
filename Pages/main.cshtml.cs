@@ -35,7 +35,6 @@ public class DashboardModel : PageModel
             var roles = await _userManager.GetRolesAsync(user);
             bool isAdmin = roles.Contains("Admin");
 
-            // 1. My Courses/Courses
             nav.Add(new NavItem
             {
                 Key = "myCourses",
@@ -43,7 +42,6 @@ public class DashboardModel : PageModel
                 Url = "/Main"
             });
 
-            // 2. Profile
             nav.Add(new NavItem
             {
                 Key = "profile",
@@ -51,7 +49,6 @@ public class DashboardModel : PageModel
                 Url = "/Profile"
             });
 
-            // 3. Settings
             nav.Add(new NavItem
             {
                 Key = "settings",
@@ -59,7 +56,6 @@ public class DashboardModel : PageModel
                 Url = "/Settings"
             });
 
-            // 4. User Management (admin only)
             if (isAdmin)
             {
                 nav.Add(new NavItem
@@ -68,9 +64,15 @@ public class DashboardModel : PageModel
                     Label = "User Management",
                     Url = "Admin/Users"
                 });
+                
+                nav.Add(new NavItem
+                {
+                    Key = "courseManagement",
+                    Label = "Course Management",
+                    Url = "/Admin/Courses"
+                });
             }
 
-            // Courses logic
             if (isAdmin)
             {
                 Courses = await _context.Courses

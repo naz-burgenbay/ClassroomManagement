@@ -10,10 +10,12 @@
 
 <div class="tabs">
     <button id="materialsTab" class="tab-btn active" onclick="showTab('materials')">Materials</button>
+    <button id="homeworksTab" class="tab-btn" onclick="showTab('homeworks')">Homeworks</button>
     <button id="participantsTab" class="tab-btn" onclick="showTab('participants')">Participants</button>
     @if (User.IsInRole("Instructor"))
     {
         <a href="/AddMaterial?courseId=@Model.Id" class="add-material-btn">+ Add Material</a>
+        <a href="/AddHomework?courseId=@Model.Id" class="add-material-btn" style="margin-left:8px;">+ Add Homework</a>
     }
 </div>
 
@@ -45,6 +47,38 @@
     else
     {
         <p>No materials yet.</p>
+    }
+</div>
+
+<div id="homeworksSection" class="tab-section" style="display:none;">
+    <h2>Homeworks</h2>
+    @if (Model.Homeworks.Any())
+    {
+        <ul>
+            @foreach (var hw in Model.Homeworks)
+            {
+                <li>
+                    <a href="/Homework?id=@hw.Id"><strong>@hw.Title</strong></a>
+                    <div><b>Due:</b> @hw.DueDate.ToString("yyyy-MM-dd HH:mm")</div>
+                    <div>@hw.Description</div>
+                    @if (hw.Files != null && hw.Files.Any())
+                    {
+                        <ul>
+                            @foreach(var file in hw.Files)
+                            {
+                                <li>
+                                    <a href="@file.FilePath" target="_blank">@file.FileName</a>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </li>
+            }
+        </ul>
+    }
+    else
+    {
+        <p>No homeworks yet.</p>
     }
 </div>
 
@@ -151,8 +185,10 @@
 <script>
 function showTab(tab) {
     document.getElementById('materialsSection').style.display = tab === 'materials' ? '' : 'none';
+    document.getElementById('homeworksSection').style.display = tab === 'homeworks' ? '' : 'none';
     document.getElementById('participantsSection').style.display = tab === 'participants' ? '' : 'none';
     document.getElementById('materialsTab').classList.toggle('active', tab === 'materials');
+    document.getElementById('homeworksTab').classList.toggle('active', tab === 'homeworks');
     document.getElementById('participantsTab').classList.toggle('active', tab === 'participants');
 }
 </script>

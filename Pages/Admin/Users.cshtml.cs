@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using ClassroomManagement.Models;
 using ClassroomManagement.Helpers;
+using ClassroomManagement.Data;
+using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,14 +17,19 @@ namespace ClassroomManagement.Pages.Admin
     {
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly ApplicationDbContext _context;
 
         public List<ApplicationUser> Instructors { get; set; }
         public List<ApplicationUser> Students { get; set; }
 
-        public UsersModel(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
+        public UsersModel(
+            UserManager<ApplicationUser> userManager,
+            RoleManager<IdentityRole> roleManager,
+            ApplicationDbContext context)
         {
             _userManager = userManager;
             _roleManager = roleManager;
+            _context = context;
         }
 
         [BindProperty]
@@ -40,7 +47,6 @@ namespace ClassroomManagement.Pages.Admin
         [BindProperty]
         public string NewSpecialization { get; set; }
 
-        // For editing
         [BindProperty]
         public string EditUserId { get; set; }
         [BindProperty]
@@ -126,7 +132,6 @@ namespace ClassroomManagement.Pages.Admin
             return RedirectToPage();
         }
 
-        // Inline editing
         public async Task<IActionResult> OnPostEditAsync(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
@@ -143,7 +148,6 @@ namespace ClassroomManagement.Pages.Admin
             return Page();
         }
 
-        // Save changes
         public async Task<IActionResult> OnPostUpdateAsync()
         {
             var user = await _userManager.FindByIdAsync(EditUserId);
@@ -197,6 +201,14 @@ namespace ClassroomManagement.Pages.Admin
             var user = await _userManager.FindByIdAsync(id);
             if (user != null)
             {
+                var roles = await _userManager.GetRolesAsync(user);
+                if (UserHelper.IsStudent(roles))
+                {
+                    var studentCourses = _context.StudentCourses.Where(sc => sc.StudentId == user.Id);
+                    _context.StudentCourses.RemoveRange(studentCourses);
+                    await _context.SaveChangesAsync();
+                }
+
                 await _userManager.DeleteAsync(user);
             }
             return RedirectToPage();
