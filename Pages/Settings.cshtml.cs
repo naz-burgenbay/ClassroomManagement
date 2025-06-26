@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using ClassroomManagement.Models;
 using System.ComponentModel.DataAnnotations;
-using System.Threading.Tasks;
 
 [Authorize]
 public class SettingsModel : PageModel

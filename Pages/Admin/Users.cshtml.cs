@@ -3,12 +3,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using ClassroomManagement.Models;
-using ClassroomManagement.Helpers;
+using ClassroomManagement.Services;
 using ClassroomManagement.Data;
-using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace ClassroomManagement.Pages.Admin
 {
@@ -18,6 +14,7 @@ namespace ClassroomManagement.Pages.Admin
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly ApplicationDbContext _context;
+        private readonly UserService _userService;
 
         public List<ApplicationUser> Instructors { get; set; }
         public List<ApplicationUser> Students { get; set; }
@@ -25,11 +22,13 @@ namespace ClassroomManagement.Pages.Admin
         public UsersModel(
             UserManager<ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager,
-            ApplicationDbContext context)
+            ApplicationDbContext context,
+            UserService userService)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _context = context;
+            _userService = userService;
         }
 
         [BindProperty]
@@ -70,8 +69,8 @@ namespace ClassroomManagement.Pages.Admin
             foreach (var user in users)
             {
                 var roles = await _userManager.GetRolesAsync(user);
-                if (UserHelper.IsInstructor(roles)) Instructors.Add(user);
-                if (UserHelper.IsStudent(roles)) Students.Add(user);
+                if (_userService.IsInstructor(roles)) Instructors.Add(user);
+                if (_userService.IsStudent(roles)) Students.Add(user);
             }
         }
 
@@ -94,7 +93,7 @@ namespace ClassroomManagement.Pages.Admin
                     await OnGetAsync();
                     return Page();
                 }
-                if (!UserHelper.IsValidStudentId(NewStudId))
+                if (!_userService.IsValidStudentId(NewStudId))
                 {
                     ModelState.AddModelError("NewStudId", "Student ID must start with 'w' and have 5 digits.");
                     await OnGetAsync();
@@ -160,9 +159,9 @@ namespace ClassroomManagement.Pages.Admin
             user.LastName = EditLastName;
 
             var roles = await _userManager.GetRolesAsync(user);
-            if (UserHelper.IsStudent(roles))
+            if (_userService.IsStudent(roles))
             {
-                if (!UserHelper.IsValidStudentId(EditStudId))
+                if (!_userService.IsValidStudentId(EditStudId))
                 {
                     ModelState.AddModelError("EditStudId", "Student ID must start with 'w' and have 5 digits.");
                     await OnGetAsync();
@@ -202,7 +201,7 @@ namespace ClassroomManagement.Pages.Admin
             if (user != null)
             {
                 var roles = await _userManager.GetRolesAsync(user);
-                if (UserHelper.IsStudent(roles))
+                if (_userService.IsStudent(roles))
                 {
                     var studentCourses = _context.StudentCourses.Where(sc => sc.StudentId == user.Id);
                     _context.StudentCourses.RemoveRange(studentCourses);

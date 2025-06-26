@@ -1,12 +1,11 @@
 using Microsoft.AspNetCore.Identity;
-using System.Collections.Generic;
 
 namespace ClassroomManagement.Models
 {
     public class ApplicationUser : IdentityUser
     {
         public string? StudId { get; set; }
-        
+
         public string FirstName { get; set; } = string.Empty;
         public string LastName { get; set; } = string.Empty;
 

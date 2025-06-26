@@ -1,4 +1,5 @@
 namespace ClassroomManagement.Models;
+
 public class CourseMaterial
 {
     public int Id { get; set; }

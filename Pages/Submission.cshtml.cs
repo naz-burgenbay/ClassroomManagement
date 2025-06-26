@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using ClassroomManagement.Data;
 using ClassroomManagement.Models;
-using System.Threading.Tasks;
 
 public class SubmissionModel : PageModel
 {

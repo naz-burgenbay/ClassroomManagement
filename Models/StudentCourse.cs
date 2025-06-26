@@ -1,4 +1,5 @@
 namespace ClassroomManagement.Models;
+
 public class StudentCourse
 {
     public string StudentId { get; set; }

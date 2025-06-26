@@ -1,26 +1,22 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
-using ClassroomManagement.Models;
-using ClassroomManagement.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Linq;
+using ClassroomManagement.Models;
+using ClassroomManagement.Services;
 
 namespace ClassroomManagement.Pages.Admin
 {
     [Authorize(Roles = "Admin")]
     public class EditCourseModel : PageModel
     {
-        private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly CourseService _courseService;
 
-        public EditCourseModel(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public EditCourseModel(UserManager<ApplicationUser> userManager, CourseService courseService)
         {
-            _context = context;
             _userManager = userManager;
+            _courseService = courseService;
         }
 
         [BindProperty(SupportsGet = true)]
@@ -39,9 +35,7 @@ namespace ClassroomManagement.Pages.Admin
 
         public async Task<IActionResult> OnGetAsync()
         {
-            var course = await _context.Courses
-                .Include(c => c.StudentCourse)
-                .FirstOrDefaultAsync(c => c.Id == Id);
+            var course = await _courseService.GetCourseByIdAsync(Id);
 
             if (course == null) return NotFound();
 
@@ -65,31 +59,10 @@ namespace ClassroomManagement.Pages.Admin
 
         public async Task<IActionResult> OnPostAsync()
         {
-            var course = await _context.Courses
-                .Include(c => c.StudentCourse)
-                .FirstOrDefaultAsync(c => c.Id == Id);
+            var updated = await _courseService.UpdateCourseAsync(Id, Name, Description, InstructorId, SelectedStudentIds);
 
-            if (course == null) return NotFound();
+            if (!updated) return NotFound();
 
-            course.Name = Name;
-            course.Description = Description;
-            course.InstructorId = InstructorId;
-
-            _context.StudentCourses.RemoveRange(course.StudentCourse);
-            if (SelectedStudentIds != null && SelectedStudentIds.Any())
-            {
-                course.StudentCourse = SelectedStudentIds.Select(sid => new StudentCourse
-                {
-                    StudentId = sid,
-                    CourseId = course.Id
-                }).ToList();
-            }
-            else
-            {
-                course.StudentCourse = new List<StudentCourse>();
-            }
-
-            await _context.SaveChangesAsync();
             return RedirectToPage("/Admin/Courses");
         }
     }

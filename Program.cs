@@ -3,6 +3,7 @@ using ClassroomManagement.Data;
 using ClassroomManagement.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using ClassroomManagement.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +24,10 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 })
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
+
+builder.Services.AddScoped<HomeworkSubmissionService>();
+builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<CourseService>();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {

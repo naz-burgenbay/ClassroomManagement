@@ -2,28 +2,24 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using ClassroomManagement.Data;
 using ClassroomManagement.Models;
-using System.Collections.Generic;
+using ClassroomManagement.Services;
 using System.ComponentModel.DataAnnotations;
-using System.Threading.Tasks;
-using System.Linq;
-using System.IO;
-using System;
 
 public class HomeworkModel : PageModel
 {
     private readonly ApplicationDbContext _context;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IWebHostEnvironment _env;
+    private readonly HomeworkSubmissionService _submissionService;
 
-    public HomeworkModel(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IWebHostEnvironment env)
+    public HomeworkModel(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IWebHostEnvironment env, HomeworkSubmissionService submissionService)
     {
         _context = context;
         _userManager = userManager;
         _env = env;
+        _submissionService = submissionService;
     }
 
     [BindProperty(SupportsGet = true)]
@@ -193,58 +189,18 @@ public class HomeworkModel : PageModel
         if (user == null || !User.IsInRole("Student"))
             return Forbid();
 
-        var homeworkTask = await _context.HomeworkTasks.FindAsync(Id);
-        if (homeworkTask == null)
+        var result = await _submissionService.SubmitHomeworkAsync(
+            Id,
+            user.Id,
+            AnswerText,
+            SubmissionFiles
+        );
+
+        if (!result.Success)
         {
-            ModelState.AddModelError("", "The homework task does not exist.");
+            ModelState.AddModelError("", result.ErrorMessage);
             await OnGetAsync();
             return Page();
-        }
-
-        var existing = await _context.HomeworkSubmissions
-            .FirstOrDefaultAsync(s => s.HomeworkTaskId == homeworkTask.Id && s.StudentId == user.Id);
-        if (existing != null)
-            return RedirectToPage(new { id = Id });
-
-        var submission = new HomeworkSubmission
-        {
-            HomeworkTaskId = homeworkTask.Id,
-            StudentId = user.Id,
-            AnswerText = AnswerText,
-            SubmittedAt = DateTime.UtcNow,
-            Files = new List<HomeworkSubmissionFile>()
-        };
-
-        _context.HomeworkSubmissions.Add(submission);
-        await _context.SaveChangesAsync();
-
-        if (SubmissionFiles != null && SubmissionFiles.Any())
-        {
-            var uploadFolder = Path.Combine(_env.WebRootPath, "uploads", "homeworksubmissions", submission.Id.ToString());
-            Directory.CreateDirectory(uploadFolder);
-
-            foreach (var file in SubmissionFiles)
-            {
-                if (file.Length > 0)
-                {
-                    var uniqueName = $"{Path.GetFileNameWithoutExtension(file.FileName)}_{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-                    var filePath = Path.Combine(uploadFolder, uniqueName);
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        await file.CopyToAsync(stream);
-                    }
-
-                    var relPath = $"/uploads/homeworksubmissions/{submission.Id}/{uniqueName}";
-                    submission.Files.Add(new HomeworkSubmissionFile
-                    {
-                        FileName = file.FileName,
-                        FilePath = relPath,
-                        ContentType = file.ContentType
-                    });
-                }
-            }
-            await _context.SaveChangesAsync();
         }
 
         return RedirectToPage(new { id = Id });

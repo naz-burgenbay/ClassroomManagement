@@ -1,54 +1,31 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
-using ClassroomManagement.Data;
-using ClassroomManagement.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
 using ClassroomManagement.Models;
-using ClassroomManagement.Data;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Linq;
+using ClassroomManagement.Services;
 
 namespace ClassroomManagement.Pages.Admin
 {
     [Authorize(Roles = "Admin")]
     public class CoursesModel : PageModel
     {
-        private readonly ApplicationDbContext _context;
+        private readonly CourseService _courseService;
 
-        public CoursesModel(ApplicationDbContext context)
+        public CoursesModel(CourseService courseService)
         {
-            _context = context;
+            _courseService = courseService;
         }
 
         public List<Course> Courses { get; set; }
 
         public async Task OnGetAsync()
         {
-            Courses = await _context.Courses
-                .Include(c => c.Instructor)
-                .Include(c => c.StudentCourse)
-                .ToListAsync();
+            Courses = await _courseService.GetAllCoursesAsync();
         }
 
         public async Task<IActionResult> OnPostDeleteAsync(int id)
         {
-            var course = await _context.Courses
-                .Include(c => c.StudentCourse)
-                .Include(c => c.Materials)
-                .FirstOrDefaultAsync(c => c.Id == id);
-
-            if (course != null)
-            {
-                _context.CourseMaterials.RemoveRange(course.Materials);
-
-                _context.Courses.Remove(course);
-                await _context.SaveChangesAsync();
-            }
+            await _courseService.DeleteCourseAsync(id);
             return RedirectToPage();
         }
     }

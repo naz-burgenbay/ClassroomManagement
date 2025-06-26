@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using ClassroomManagement.Models;
-using System.Threading.Tasks;
 
 [Authorize]
 public class ProfileModel : PageModel

@@ -3,13 +3,6 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using ClassroomManagement.Data;
 using ClassroomManagement.Models;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
-using System.Linq;
-using System;
 
 public class AddHomeworkModel : PageModel
 {

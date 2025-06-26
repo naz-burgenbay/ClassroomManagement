@@ -1,25 +1,22 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using ClassroomManagement.Models;
-using ClassroomManagement.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Linq;
+using ClassroomManagement.Services;
 
 namespace ClassroomManagement.Pages.Admin
 {
     [Authorize(Roles = "Admin")]
     public class CreateCourseModel : PageModel
     {
-        private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly CourseService _courseService;
 
-        public CreateCourseModel(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public CreateCourseModel(UserManager<ApplicationUser> userManager, CourseService courseService)
         {
-            _context = context;
             _userManager = userManager;
+            _courseService = courseService;
         }
 
         [BindProperty]
@@ -57,23 +54,8 @@ namespace ClassroomManagement.Pages.Admin
                 return Page();
             }
 
-            var course = new Course
-            {
-                Name = Name,
-                Description = Description,
-                InstructorId = InstructorId,
-            };
+            await _courseService.CreateCourseAsync(Name, Description, InstructorId, SelectedStudentIds);
 
-            if (SelectedStudentIds != null && SelectedStudentIds.Any())
-            {
-                course.StudentCourse = SelectedStudentIds.Select(sid => new StudentCourse
-                {
-                    StudentId = sid
-                }).ToList();
-            }
-
-            _context.Courses.Add(course);
-            await _context.SaveChangesAsync();
             return RedirectToPage("/Admin/Courses");
         }
     }
