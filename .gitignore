@@ -3,3 +3,4 @@ bin/
 obj/
 migrations/
 /.vscode
+wwwroot/uploads

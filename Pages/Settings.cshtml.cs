@@ -24,26 +24,37 @@ public class SettingsModel : PageModel
     public string Specialization { get; set; }
 
     [BindProperty]
-    [Required]
-    [EmailAddress]
-    public string Email { get; set; }
+    public ChangeEmailModel ChangeEmail { get; set; }
 
     [BindProperty]
-    [DataType(DataType.Password)]
-    public string CurrentPassword { get; set; }
-
-    [BindProperty]
-    [DataType(DataType.Password)]
-    [MinLength(6)]
-    public string NewPassword { get; set; }
-
-    [BindProperty]
-    [DataType(DataType.Password)]
-    [Compare("NewPassword", ErrorMessage = "Passwords do not match.")]
-    public string ConfirmPassword { get; set; }
+    public ChangePasswordModel ChangePassword { get; set; }
 
     [TempData]
     public string StatusMessage { get; set; }
+
+    public class ChangeEmailModel
+    {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; }
+    }
+
+    public class ChangePasswordModel
+    {
+        [Required]
+        [DataType(DataType.Password)]
+        public string CurrentPassword { get; set; }
+
+        [Required]
+        [DataType(DataType.Password)]
+        [MinLength(6)]
+        public string NewPassword { get; set; }
+
+        [Required]
+        [DataType(DataType.Password)]
+        [Compare("NewPassword", ErrorMessage = "Passwords do not match.")]
+        public string ConfirmPassword { get; set; }
+    }
 
     public async Task<IActionResult> OnGetAsync()
     {
@@ -54,7 +65,9 @@ public class SettingsModel : PageModel
         LastName = user.LastName;
         StudId = user.StudId;
         Specialization = user.Specialization;
-        Email = user.Email;
+
+        ChangeEmail = new ChangeEmailModel { Email = user.Email };
+        ChangePassword = new ChangePasswordModel();
 
         return Page();
     }
@@ -66,16 +79,16 @@ public class SettingsModel : PageModel
         var user = await _userManager.GetUserAsync(User);
         if (user == null) return RedirectToPage("/Account/Login");
 
-        if (Email != user.Email)
+        if (ChangeEmail.Email != user.Email)
         {
-            var setEmailResult = await _userManager.SetEmailAsync(user, Email);
+            var setEmailResult = await _userManager.SetEmailAsync(user, ChangeEmail.Email);
             if (!setEmailResult.Succeeded)
             {
                 foreach (var error in setEmailResult.Errors)
                     ModelState.AddModelError(string.Empty, error.Description);
                 return Page();
             }
-            user.UserName = Email;
+            user.UserName = ChangeEmail.Email;
             await _userManager.UpdateAsync(user);
             StatusMessage = "Your email has been updated.";
             await _signInManager.RefreshSignInAsync(user);
@@ -94,7 +107,7 @@ public class SettingsModel : PageModel
         var user = await _userManager.GetUserAsync(User);
         if (user == null) return RedirectToPage("/Account/Login");
 
-        var changePasswordResult = await _userManager.ChangePasswordAsync(user, CurrentPassword, NewPassword);
+        var changePasswordResult = await _userManager.ChangePasswordAsync(user, ChangePassword.CurrentPassword, ChangePassword.NewPassword);
         if (!changePasswordResult.Succeeded)
         {
             foreach (var error in changePasswordResult.Errors)
@@ -105,7 +118,8 @@ public class SettingsModel : PageModel
         await _signInManager.RefreshSignInAsync(user);
         StatusMessage = "Your password has been changed.";
 
-        CurrentPassword = NewPassword = ConfirmPassword = "";
+        // Clear password fields
+        ChangePassword = new ChangePasswordModel();
 
         return RedirectToPage();
     }
