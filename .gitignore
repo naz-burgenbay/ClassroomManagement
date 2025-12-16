@@ -2,6 +2,5 @@ secret.env
 *.env
 bin/
 obj/
-migrations/
 /.vscode
 wwwroot/uploads
